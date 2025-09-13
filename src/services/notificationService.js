@@ -45,25 +45,6 @@ class NotificationService {
     }
   }
 
-  async getPermissionStatus() {
-    try {
-      const hasPermission = await OneSignal.Notifications.hasPermission();
-      const permissionState = await OneSignal.Notifications.getPermissionAsync();
-      
-      return {
-        hasPermission,
-        permissionState,
-        canRequest: permissionState !== 'denied'
-      };
-    } catch (error) {
-      console.error('Error getting permission status:', error);
-      return {
-        hasPermission: false,
-        permissionState: 'unknown',
-        canRequest: true
-      };
-    }
-  }
 
   // Set up notification event handlers
   setupNotificationHandlers() {
