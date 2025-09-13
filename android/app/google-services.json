@@ -1,0 +1,29 @@
+{
+    "project_info": {
+      "project_number": "549638281791",
+      "project_id": "mtc-mining-simulation",
+      "storage_bucket": "mtc-mining-simulation.firebasestorage.app"
+    },
+    "client": [
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:549638281791:android:e5eb29f884e6f6bf40b68a",
+          "android_client_info": {
+            "package_name": "com.mtcminingsimulation"
+          }
+        },
+        "oauth_client": [],
+        "api_key": [
+          {
+            "current_key": "AIzaSyA3_YrjpCZWSGHT24_oXUE5xiZ1uiFLcVI"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": []
+          }
+        }
+      }
+    ],
+    "configuration_version": "1"
+  }
