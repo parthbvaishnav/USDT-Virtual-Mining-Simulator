@@ -603,23 +603,6 @@ if (InterstitialAd) {
     }
   }
 
-  isRewardedReady() {
-    if (!this.isInitialized || !this.currentNetwork) {
-      return false;
-    }
-    
-    switch (this.currentNetwork) {
-      case AD_NETWORKS.GOOGLE:
-        return this.googleRewarded && this.googleRewarded.loaded;
-      case AD_NETWORKS.FACEBOOK:
-        return this.facebookRewarded !== null;
-      case AD_NETWORKS.APPLOVIN:
-        return this.appLovinRewarded && this.appLovinRewarded.isReady();
-      default:
-        return false;
-    }
-  }
-
   // Get current network info
   getCurrentNetwork() {
     return {
