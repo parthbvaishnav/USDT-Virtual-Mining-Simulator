@@ -12,9 +12,9 @@ import mobileAds, {
 // } from 'react-native-fbads';
 
 import * as FacebookAds from 'react-native-fbads';
-const { InterstitialAd:FBInterstitialAd } = FacebookAds;
-const { RewardedAd: FBRewardedAd } = FacebookAds;
-const { AdSettings } = FacebookAds;
+const {InterstitialAd: FBInterstitialAd} = FacebookAds;
+const {RewardedAd: FBRewardedAd} = FacebookAds;
+const {AdSettings} = FacebookAds;
 import {
   MaxInterstitialAd,
   MaxRewardedAd,
@@ -33,19 +33,19 @@ class MultiAdManager {
     this.currentNetwork = null; // No default network
     this.adConfig = null;
     this.isInitialized = false;
-    
+
     // Google Ads instances
     this.googleInterstitial = null;
     this.googleRewarded = null;
-    
+
     // Facebook Ads instances
     this.facebookInterstitial = null;
     this.facebookRewarded = null;
-    
+
     // AppLovin instances
     this.appLovinInterstitial = null;
     this.appLovinRewarded = null;
-    
+
     this.isTestMode = __DEV__;
   }
 
@@ -56,9 +56,13 @@ class MultiAdManager {
     try {
       // Fetch ad configuration from backend using adConfigService
       this.adConfig = await adConfigService.fetchAdConfig();
-      
+
       // If config is null or activeNetwork is empty, disable ads
-      if (!this.adConfig || !this.adConfig.activeNetwork || this.adConfig.activeNetwork.trim() === '') {
+      if (
+        !this.adConfig ||
+        !this.adConfig.activeNetwork ||
+        this.adConfig.activeNetwork.trim() === ''
+      ) {
         console.log('activeNetwork is empty or null - ads disabled');
         this.isInitialized = false;
         this.currentNetwork = null;
@@ -66,28 +70,39 @@ class MultiAdManager {
       }
 
       this.currentNetwork = this.adConfig.activeNetwork;
-      
+
       console.log('Ad config loaded:', this.adConfig);
       console.log('Active network:', this.currentNetwork);
-      
+
       // Only initialize the active network specified by API
-      if (this.currentNetwork === AD_NETWORKS.GOOGLE && this.adConfig.networks.google?.enabled) {
+      if (
+        this.currentNetwork === AD_NETWORKS.GOOGLE &&
+        this.adConfig.networks.google?.enabled
+      ) {
         await this.initializeGoogleAds();
         this.isInitialized = true;
-      } else if (this.currentNetwork === AD_NETWORKS.FACEBOOK && this.adConfig.networks.facebook?.enabled) {
+      } else if (
+        this.currentNetwork === AD_NETWORKS.FACEBOOK &&
+        this.adConfig.networks.facebook?.enabled
+      ) {
         await this.initializeFacebookAds();
         this.isInitialized = true;
-      } else if (this.currentNetwork === AD_NETWORKS.APPLOVIN && this.adConfig.networks.applovin?.enabled) {
+      } else if (
+        this.currentNetwork === AD_NETWORKS.APPLOVIN &&
+        this.adConfig.networks.applovin?.enabled
+      ) {
         await this.initializeAppLovinAds();
         this.isInitialized = true;
       } else {
         // activeNetwork doesn't match any supported network or network not enabled
-        console.log(`activeNetwork '${this.currentNetwork}' is not supported or enabled - ads disabled`);
+        console.log(
+          `activeNetwork '${this.currentNetwork}' is not supported or enabled - ads disabled`,
+        );
         this.isInitialized = false;
         this.currentNetwork = null;
         return;
       }
-      
+
       console.log(`Ad network initialized: ${this.currentNetwork}`);
     } catch (error) {
       console.error('Error initializing ad networks:', error);
@@ -96,7 +111,6 @@ class MultiAdManager {
       this.currentNetwork = null;
     }
   }
-
 
   // Initialize Google Ads
   async initializeGoogleAds() {
@@ -116,7 +130,7 @@ class MultiAdManager {
       if (this.isTestMode) {
         AdSettings.addTestDevice(AdSettings.currentDeviceHash);
       }
-      
+
       this.loadFacebookInterstitial();
       this.loadFacebookRewarded();
       console.log('Facebook Ads initialized');
@@ -146,27 +160,27 @@ class MultiAdManager {
   loadGoogleInterstitial() {
     try {
       const adUnitId = this.adConfig?.networks?.google?.interstitialId;
-      
+
       if (!adUnitId) {
         console.log('No Google interstitial ad unit ID from API');
         return;
       }
-      
+
       this.googleInterstitial = InterstitialAd.createForAdRequest(adUnitId);
-      
+
       this.googleInterstitial.addAdEventListener(AdEventType.LOADED, () => {
         console.log('Google Interstitial ad loaded');
       });
-      
+
       this.googleInterstitial.addAdEventListener(AdEventType.ERROR, error => {
         console.error('Google Interstitial ad failed to load:', error);
         setTimeout(() => this.loadGoogleInterstitial(), 5000);
       });
-      
+
       this.googleInterstitial.addAdEventListener(AdEventType.CLOSED, () => {
         this.loadGoogleInterstitial();
       });
-      
+
       this.googleInterstitial.load();
     } catch (error) {
       console.error('Error loading Google interstitial:', error);
@@ -176,27 +190,27 @@ class MultiAdManager {
   loadGoogleRewarded() {
     try {
       const adUnitId = this.adConfig?.networks?.google?.rewardedId;
-      
+
       if (!adUnitId) {
         console.log('No Google rewarded ad unit ID from API');
         return;
       }
-      
+
       this.googleRewarded = RewardedAd.createForAdRequest(adUnitId);
-      
+
       this.googleRewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
         console.log('Google Rewarded ad loaded');
       });
-      
+
       this.googleRewarded.addAdEventListener(AdEventType.ERROR, error => {
         console.error('Google Rewarded ad failed to load:', error);
         setTimeout(() => this.loadGoogleRewarded(), 5000);
       });
-      
+
       this.googleRewarded.addAdEventListener(AdEventType.CLOSED, () => {
         this.loadGoogleRewarded();
       });
-      
+
       this.googleRewarded.load();
     } catch (error) {
       console.error('Error loading Google rewarded:', error);
@@ -207,18 +221,17 @@ class MultiAdManager {
   loadFacebookInterstitial() {
     try {
       const adUnitId = this.adConfig?.networks?.facebook?.interstitialId;
-      
+
       if (!adUnitId) {
         console.log('No Facebook interstitial ad unit ID from API');
         return;
       }
-     if (FBInterstitialAd) {
-  const ad = new FBInterstitialAd(adUnitId);
-  ad.loadAd();
-} else {
-  console.error('FBInterstitialAd is undefined – module likely broken.');
-}
-
+      if (FBInterstitialAd) {
+        const ad = new FBInterstitialAd(adUnitId);
+        ad.loadAd();
+      } else {
+        console.error('FBInterstitialAd is undefined – module likely broken.');
+      }
     } catch (error) {
       console.error('Error loading Facebook interstitial:', error);
     }
@@ -227,17 +240,17 @@ class MultiAdManager {
   loadFacebookRewarded() {
     try {
       const adUnitId = this.adConfig?.networks?.facebook?.rewardedId;
-      
+
       if (!adUnitId) {
         console.log('No Facebook rewarded ad unit ID from API');
         return;
       }
-if (InterstitialAd) {
-  const ad = new InterstitialAd(adUnitId);
-  ad.loadAd();
-} else {
-  console.error('FBInterstitialAd is undefined – module likely broken.');
-}
+      if (InterstitialAd) {
+        const ad = new InterstitialAd(adUnitId);
+        ad.loadAd();
+      } else {
+        console.error('FBInterstitialAd is undefined – module likely broken.');
+      }
     } catch (error) {
       console.error('Error loading Facebook rewarded:', error);
     }
@@ -247,25 +260,25 @@ if (InterstitialAd) {
   loadAppLovinInterstitial() {
     try {
       const adUnitId = this.adConfig?.networks?.applovin?.interstitialId;
-      
+
       if (!adUnitId) {
         console.log('No AppLovin interstitial ad unit ID from API');
         return;
       }
-      
+
       this.appLovinInterstitial = new MaxInterstitialAd(adUnitId);
-      
+
       // Add event listeners
       this.appLovinInterstitial.setAdLoadListener({
         onAdLoaded: () => {
           console.log('AppLovin Interstitial ad loaded');
         },
-        onAdLoadFailed: (error) => {
+        onAdLoadFailed: error => {
           console.error('AppLovin Interstitial ad failed to load:', error);
           setTimeout(() => this.loadAppLovinInterstitial(), 5000);
-        }
+        },
       });
-      
+
       this.appLovinInterstitial.setAdDisplayListener({
         onAdDisplayed: () => {
           console.log('AppLovin Interstitial ad displayed');
@@ -273,9 +286,9 @@ if (InterstitialAd) {
         onAdHidden: () => {
           console.log('AppLovin Interstitial ad hidden');
           this.loadAppLovinInterstitial(); // Preload next ad
-        }
+        },
       });
-      
+
       this.appLovinInterstitial.loadAd();
       console.log('AppLovin Interstitial ad loading...');
     } catch (error) {
@@ -286,25 +299,25 @@ if (InterstitialAd) {
   loadAppLovinRewarded() {
     try {
       const adUnitId = this.adConfig?.networks?.applovin?.rewardedId;
-      
+
       if (!adUnitId) {
         console.log('No AppLovin rewarded ad unit ID from API');
         return;
       }
-      
+
       this.appLovinRewarded = new MaxRewardedAd(adUnitId);
-      
+
       // Add event listeners
       this.appLovinRewarded.setAdLoadListener({
         onAdLoaded: () => {
           console.log('AppLovin Rewarded ad loaded');
         },
-        onAdLoadFailed: (error) => {
+        onAdLoadFailed: error => {
           console.error('AppLovin Rewarded ad failed to load:', error);
           setTimeout(() => this.loadAppLovinRewarded(), 5000);
-        }
+        },
       });
-      
+
       this.appLovinRewarded.setAdDisplayListener({
         onAdDisplayed: () => {
           console.log('AppLovin Rewarded ad displayed');
@@ -312,9 +325,9 @@ if (InterstitialAd) {
         onAdHidden: () => {
           console.log('AppLovin Rewarded ad hidden');
           this.loadAppLovinRewarded(); // Preload next ad
-        }
+        },
       });
-      
+
       this.appLovinRewarded.loadAd();
       console.log('AppLovin Rewarded ad loading...');
     } catch (error) {
@@ -325,7 +338,9 @@ if (InterstitialAd) {
   // Universal show interstitial method
   async showInterstitial() {
     if (!this.isInitialized || !this.currentNetwork) {
-      console.log('Ad manager not initialized or activeNetwork is empty - no ads available');
+      console.log(
+        'Ad manager not initialized or activeNetwork is empty - no ads available',
+      );
       return true;
     }
     try {
@@ -350,8 +365,10 @@ if (InterstitialAd) {
   async showRewardedAd() {
     try {
       if (!this.isInitialized || !this.currentNetwork) {
-        console.log('Ad manager not initialized or activeNetwork is empty - no ads available');
-        return { success: true, reward: null };
+        console.log(
+          'Ad manager not initialized or activeNetwork is empty - no ads available',
+        );
+        return {success: true, reward: null};
       }
 
       switch (this.currentNetwork) {
@@ -363,11 +380,11 @@ if (InterstitialAd) {
           return await this.showAppLovinRewarded();
         default:
           console.log('No valid ad network configured');
-          return { success: false, reward: null };
+          return {success: false, reward: null};
       }
     } catch (error) {
       console.error('Error showing rewarded ad:', error);
-      return { success: false, reward: null };
+      return {success: false, reward: null};
     }
   }
 
@@ -394,7 +411,7 @@ if (InterstitialAd) {
         if (!this.googleRewarded || !this.googleRewarded.loaded) {
           console.log('Google Rewarded ad not loaded');
           this.loadGoogleRewarded();
-          resolve({ success: false, reward: null });
+          resolve({success: false, reward: null});
           return;
         }
 
@@ -404,23 +421,23 @@ if (InterstitialAd) {
           RewardedAdEventType.EARNED_REWARD,
           reward => {
             earned = true;
-            resolve({ success: true, reward, network: 'google' });
-          }
+            resolve({success: true, reward, network: 'google'});
+          },
         );
 
         const closedListener = this.googleRewarded.addAdEventListener(
           AdEventType.CLOSED,
           () => {
-            if (!earned) resolve({ success: false, reward: null });
+            if (!earned) resolve({success: false, reward: null});
             rewardListener();
             closedListener();
-          }
+          },
         );
 
         this.googleRewarded.show();
       } catch (error) {
         console.error('Error showing Google rewarded ad:', error);
-        resolve({ success: false, reward: null });
+        resolve({success: false, reward: null});
       }
     });
   }
@@ -435,7 +452,8 @@ if (InterstitialAd) {
           return;
         }
 
-        this.facebookInterstitial.showAd()
+        this.facebookInterstitial
+          .showAd()
           .then(() => {
             console.log('Facebook Interstitial ad shown');
             resolve(true);
@@ -456,22 +474,27 @@ if (InterstitialAd) {
       try {
         if (!this.facebookRewarded) {
           this.loadFacebookRewarded();
-          resolve({ success: false, reward: null });
+          resolve({success: false, reward: null});
           return;
         }
 
-        this.facebookRewarded.showAd()
+        this.facebookRewarded
+          .showAd()
           .then(() => {
             console.log('Facebook Rewarded ad completed');
-            resolve({ success: true, reward: { amount: 1, type: 'coins' }, network: 'facebook' });
+            resolve({
+              success: true,
+              reward: {amount: 1, type: 'coins'},
+              network: 'facebook',
+            });
           })
           .catch(error => {
             console.error('Error showing Facebook rewarded:', error);
-            resolve({ success: false, reward: null });
+            resolve({success: false, reward: null});
           });
       } catch (error) {
         console.error('Error with Facebook rewarded:', error);
-        resolve({ success: false, reward: null });
+        resolve({success: false, reward: null});
       }
     });
   }
@@ -486,7 +509,8 @@ if (InterstitialAd) {
           return;
         }
 
-        this.appLovinInterstitial.showAd()
+        this.appLovinInterstitial
+          .showAd()
           .then(() => {
             console.log('AppLovin Interstitial ad shown');
             resolve(true);
@@ -508,7 +532,7 @@ if (InterstitialAd) {
         if (!this.appLovinRewarded || !this.appLovinRewarded.isReady()) {
           console.log('AppLovin Rewarded ad not ready');
           this.loadAppLovinRewarded();
-          resolve({ success: false, reward: null });
+          resolve({success: false, reward: null});
           return;
         }
 
@@ -516,11 +540,15 @@ if (InterstitialAd) {
 
         // Set reward listener
         this.appLovinRewarded.setRewardListener({
-          onUserRewarded: (reward) => {
+          onUserRewarded: reward => {
             earned = true;
             console.log('AppLovin Rewarded ad completed with reward:', reward);
-            resolve({ success: true, reward: { amount: 1, type: 'coins' }, network: 'applovin' });
-          }
+            resolve({
+              success: true,
+              reward: {amount: 1, type: 'coins'},
+              network: 'applovin',
+            });
+          },
         });
 
         // Set display listener for close event
@@ -528,15 +556,15 @@ if (InterstitialAd) {
           onAdHidden: () => {
             if (!earned) {
               console.log('AppLovin Rewarded ad closed without reward');
-              resolve({ success: false, reward: null });
+              resolve({success: false, reward: null});
             }
-          }
+          },
         });
 
         this.appLovinRewarded.showAd();
       } catch (error) {
         console.error('Error with AppLovin rewarded:', error);
-        resolve({ success: false, reward: null });
+        resolve({success: false, reward: null});
       }
     });
   }
@@ -545,7 +573,7 @@ if (InterstitialAd) {
   async updateAdNetwork() {
     try {
       await this.fetchAdConfig();
-      
+
       // Reload ads for the new network
       switch (this.currentNetwork) {
         case AD_NETWORKS.GOOGLE:
@@ -561,7 +589,7 @@ if (InterstitialAd) {
           this.loadAppLovinRewarded();
           break;
       }
-      
+
       console.log('Ad network updated to:', this.currentNetwork);
     } catch (error) {
       console.error('Error updating ad network:', error);
@@ -573,7 +601,7 @@ if (InterstitialAd) {
     if (!this.isInitialized || !this.currentNetwork) {
       return false;
     }
-    
+
     switch (this.currentNetwork) {
       case AD_NETWORKS.GOOGLE:
         return this.googleInterstitial && this.googleInterstitial.loaded;
@@ -590,7 +618,7 @@ if (InterstitialAd) {
     if (!this.isInitialized || !this.currentNetwork) {
       return false;
     }
-    
+
     switch (this.currentNetwork) {
       case AD_NETWORKS.GOOGLE:
         return this.googleRewarded && this.googleRewarded.loaded;
@@ -620,7 +648,7 @@ if (InterstitialAd) {
     if (Object.values(AD_NETWORKS).includes(network)) {
       this.currentNetwork = network;
       console.log('Manually switched to network:', network);
-      
+
       // Reload ads for new network
       this.updateAdNetwork();
     } else {
@@ -630,8 +658,11 @@ if (InterstitialAd) {
 
   // Fallback mechanism - try different networks if current fails
   async showInterstitialWithFallback() {
-    const networks = [this.currentNetwork, ...Object.values(AD_NETWORKS).filter(n => n !== this.currentNetwork)];
-    
+    const networks = [
+      this.currentNetwork,
+      ...Object.values(AD_NETWORKS).filter(n => n !== this.currentNetwork),
+    ];
+
     for (const network of networks) {
       try {
         this.currentNetwork = network;
@@ -641,17 +672,22 @@ if (InterstitialAd) {
           return true;
         }
       } catch (error) {
-        console.log(`Failed to show interstitial with ${network}, trying next...`);
+        console.log(
+          `Failed to show interstitial with ${network}, trying next...`,
+        );
       }
     }
-    
+
     console.log('All interstitial ad networks failed');
     return false;
   }
 
   async showRewardedWithFallback() {
-    const networks = [this.currentNetwork, ...Object.values(AD_NETWORKS).filter(n => n !== this.currentNetwork)];
-    
+    const networks = [
+      this.currentNetwork,
+      ...Object.values(AD_NETWORKS).filter(n => n !== this.currentNetwork),
+    ];
+
     for (const network of networks) {
       try {
         this.currentNetwork = network;
@@ -661,12 +697,14 @@ if (InterstitialAd) {
           return result;
         }
       } catch (error) {
-        console.log(`Failed to show rewarded ad with ${network}, trying next...`);
+        console.log(
+          `Failed to show rewarded ad with ${network}, trying next...`,
+        );
       }
     }
-    
+
     console.log('All rewarded ad networks failed');
-    return { success: false, reward: null };
+    return {success: false, reward: null};
   }
 }
 
