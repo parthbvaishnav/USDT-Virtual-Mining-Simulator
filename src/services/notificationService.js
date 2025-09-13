@@ -34,7 +34,9 @@ class NotificationService {
       const hasPermission = await OneSignal.Notifications.hasPermission();
       console.log('Has notification permission:', hasPermission);
       if (!hasPermission) {
-        const permission = await OneSignal.Notifications.requestPermission(true);
+        const permission = await OneSignal.Notifications.requestPermission(
+          true,
+        );
         console.log('Permission request result:', permission);
         return permission;
       }
@@ -45,47 +47,27 @@ class NotificationService {
     }
   }
 
-  async getPermissionStatus() {
-    try {
-      const hasPermission = await OneSignal.Notifications.hasPermission();
-      const permissionState = await OneSignal.Notifications.getPermissionAsync();
-      
-      return {
-        hasPermission,
-        permissionState,
-        canRequest: permissionState !== 'denied'
-      };
-    } catch (error) {
-      console.error('Error getting permission status:', error);
-      return {
-        hasPermission: false,
-        permissionState: 'unknown',
-        canRequest: true
-      };
-    }
-  }
-
   // Set up notification event handlers
   setupNotificationHandlers() {
     // Handle notification received while app is in foreground
-    OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event) => {
+    OneSignal.Notifications.addEventListener('foregroundWillDisplay', event => {
       console.log('OneSignal: notification will show in foreground:', event);
       const notification = event.getNotification();
       console.log('notification: ', notification);
-      
+
       // Complete with null means don't show a notification
       // Complete with notification means show the notification
       event.getNotification().display();
     });
 
     // Handle notification opened/clicked
-    OneSignal.Notifications.addEventListener('click', (event) => {
+    OneSignal.Notifications.addEventListener('click', event => {
       console.log('OneSignal: notification clicked:', event);
       this.handleNotificationOpened(event);
     });
 
     // Handle subscription changes
-    OneSignal.User.pushSubscription.addEventListener('change', (event) => {
+    OneSignal.User.pushSubscription.addEventListener('change', event => {
       console.log('OneSignal: subscription changed: ', event);
       if (event.current.id) {
         this.userId = event.current.id;
@@ -93,7 +75,7 @@ class NotificationService {
     });
 
     // Handle permission changes
-    OneSignal.Notifications.addEventListener('permissionChange', (granted) => {
+    OneSignal.Notifications.addEventListener('permissionChange', granted => {
       console.log('OneSignal: permission changed:', granted);
     });
   }
@@ -103,9 +85,9 @@ class NotificationService {
     try {
       const notification = event.result.notification;
       const data = notification.additionalData;
-      
+
       console.log('Notification opened with data:', data);
-      
+
       // Handle different notification types based on data
       if (data) {
         switch (data.type) {
@@ -193,14 +175,13 @@ class NotificationService {
       const notificationData = {
         app_id: 'YOUR_ONESIGNAL_APP_ID',
         include_player_ids: [userId],
-        headings: { en: title },
-        contents: { en: message },
+        headings: {en: title},
+        contents: {en: message},
         data: data,
       };
-      
+
       console.log('Notification data prepared:', notificationData);
       // You would send this to OneSignal REST API from your backend
-      
     } catch (error) {
       console.error('Error preparing notification:', error);
     }
@@ -212,14 +193,13 @@ class NotificationService {
       const notificationData = {
         app_id: 'YOUR_ONESIGNAL_APP_ID',
         included_segments: ['All'],
-        headings: { en: title },
-        contents: { en: message },
+        headings: {en: title},
+        contents: {en: message},
         data: data,
       };
-      
+
       console.log('Broadcast notification data prepared:', notificationData);
       // You would send this to OneSignal REST API from your backend
-      
     } catch (error) {
       console.error('Error preparing broadcast notification:', error);
     }
@@ -231,7 +211,7 @@ class NotificationService {
       const hasPermission = await OneSignal.Notifications.hasPermission();
       const isSubscribed = OneSignal.User.pushSubscription.optedIn;
       const userId = OneSignal.User.onesignalId;
-      
+
       return {
         hasPermission,
         isSubscribed,
